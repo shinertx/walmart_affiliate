@@ -1,0 +1,38 @@
+{
+  "purchase_date": "2025-10-30T16:48:02.910611",
+  "products": [
+    {
+      "walmart_item_id": 112,
+      "product_name": "Rose Cottage Girls' Hunter Green Dress",
+      "units_purchased": 5,
+      "total_investment": 324.7,
+      "expected_profit": 152.579,
+      "actual_sales": 0,
+      "actual_profit": 0,
+      "amazon_asin": null,
+      "performance_notes": []
+    },
+    {
+      "walmart_item_id": 626,
+      "product_name": "Wrangler Five Star Premium Denim Relaxed Fit Jean in Stone Bleach",
+      "units_purchased": 5,
+      "total_investment": 181.05,
+      "expected_profit": 70.6985,
+      "actual_sales": 0,
+      "actual_profit": 0,
+      "amazon_asin": null,
+      "performance_notes": []
+    },
+    {
+      "walmart_item_id": 103,
+      "product_name": "Rose Cottage Velvet Dress",
+      "units_purchased": 5,
+      "total_investment": 175.0,
+      "expected_profit": 67.25000000000001,
+      "actual_sales": 0,
+      "actual_profit": 0,
+      "amazon_asin": null,
+      "performance_notes": []
+    }
+  ]
+}
