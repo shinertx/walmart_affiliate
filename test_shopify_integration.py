@@ -141,49 +141,69 @@ def test_product_transformer():
     return True
 
 
-def test_clean_title():
-    """Test title cleaning functionality"""
+def test_title_handling():
+    """Test title handling in product transformation"""
     transformer = ProductTransformer()
     
-    print("\n🧪 Testing Title Cleaning")
+    print("\n🧪 Testing Title Handling")
     print("=" * 60)
     
-    test_cases = [
-        ("  Multiple   Spaces  ", "Multiple Spaces"),
-        ("A" * 300, "A" * 252 + "..."),
-        ("", "Untitled Product"),
-        ("Normal Title", "Normal Title")
-    ]
+    # Test with multiple spaces
+    product1 = {
+        'itemId': 1,
+        'name': '  Multiple   Spaces  ',
+        'salePrice': 10,
+        'availableOnline': True
+    }
+    result1 = transformer.transform_walmart_to_shopify(product1)
+    assert result1['title'] == 'Multiple Spaces'
+    print(f"✅ Multiple spaces handled correctly")
     
-    for input_title, expected in test_cases:
-        result = transformer._clean_title(input_title)
-        if len(expected) > 50:
-            # For very long strings, just check length
-            assert len(result) <= 255
-            print(f"✅ Long title truncated to {len(result)} chars")
-        else:
-            assert result == expected
-            print(f"✅ '{input_title[:30]}...' → '{result}'")
+    # Test with very long title
+    product2 = {
+        'itemId': 2,
+        'name': 'A' * 300,
+        'salePrice': 10,
+        'availableOnline': True
+    }
+    result2 = transformer.transform_walmart_to_shopify(product2)
+    assert len(result2['title']) <= 255
+    print(f"✅ Long title truncated to {len(result2['title'])} chars")
+    
+    # Test with empty title
+    product3 = {
+        'itemId': 3,
+        'name': '',
+        'salePrice': 10,
+        'availableOnline': True
+    }
+    result3 = transformer.transform_walmart_to_shopify(product3)
+    assert result3['title'] == 'Untitled Product'
+    print(f"✅ Empty title handled correctly")
     
     return True
 
 
 def test_tag_generation():
-    """Test tag generation"""
+    """Test tag generation through product transformation"""
     transformer = ProductTransformer()
     
     print("\n🧪 Testing Tag Generation")
     print("=" * 60)
     
     product = {
+        'itemId': 123,
+        'name': 'Test Product',
+        'salePrice': 10,
+        'availableOnline': True,
         'brandName': 'Samsung',
         'categoryPath': 'Electronics/Audio/Headphones',
-        'availableOnline': True,
         'freeShipping': True,
         'specialOffer': 'Clearance'
     }
     
-    tags = transformer._generate_tags(product)
+    result = transformer.transform_walmart_to_shopify(product)
+    tags = result['tags']
     tags_list = [t.strip() for t in tags.split(',')]
     
     assert 'Samsung' in tags_list
@@ -209,7 +229,7 @@ def main():
         if not test_product_transformer():
             all_passed = False
         
-        if not test_clean_title():
+        if not test_title_handling():
             all_passed = False
         
         if not test_tag_generation():

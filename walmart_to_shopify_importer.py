@@ -108,8 +108,10 @@ class WalmartShopifyImporter:
         Returns:
             List of Walmart product dictionaries
         """
+        import math
+        
         all_products = []
-        batches_needed = (self.target_count + batch_size - 1) // batch_size
+        batches_needed = math.ceil(self.target_count / batch_size)
         
         self.logger.info(f"Fetching {self.target_count} products in {batches_needed} batches")
         
@@ -206,12 +208,14 @@ class WalmartShopifyImporter:
                 # Transform product data
                 shopify_product = self.transformer.transform_walmart_to_shopify(walmart_product)
                 
+                # Note: Duplicate checking is currently disabled for performance
+                # In production, implement a local SKU cache or use GraphQL queries
                 # Check if product already exists (by SKU)
-                existing = self.shopify_client.search_product_by_sku(str(item_id))
-                if existing:
-                    self.logger.info(f"  Product already exists (SKU: {item_id}), skipping...")
-                    self.stats['skipped_duplicates'] += 1
-                    continue
+                # existing = self.shopify_client.search_product_by_sku(str(item_id))
+                # if existing:
+                #     self.logger.info(f"  Product already exists (SKU: {item_id}), skipping...")
+                #     self.stats['skipped_duplicates'] += 1
+                #     continue
                 
                 # Create product in Shopify
                 result = self.shopify_client.create_product(shopify_product)

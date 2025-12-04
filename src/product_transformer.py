@@ -209,7 +209,8 @@ class ProductTransformer:
         # Add Walmart tag
         tags.append('Walmart')
         
-        # Remove duplicates and join
+        # Remove duplicates while preserving order
+        # Using dict.fromkeys() instead of set() to maintain insertion order
         tags = list(dict.fromkeys(tags))  # Remove duplicates while preserving order
         return ', '.join(tags[:20])  # Limit to 20 tags
     
