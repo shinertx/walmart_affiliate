@@ -131,14 +131,20 @@ class ShopifyAPIClient:
         """
         Search for a product by SKU to avoid duplicates
         
-        Note: This is a simple implementation. For production, consider:
-        - Maintaining a local cache of SKUs
-        - Using GraphQL for more efficient queries
+        Note: This method is currently a stub for performance reasons during bulk imports.
+        
+        For production implementation, consider:
+        - Maintaining a local cache of SKUs loaded at startup
+        - Using Shopify GraphQL API for efficient batch queries
+        - Implementing pagination for stores with many products
+        
+        Raises:
+            NotImplementedError: This method is not yet implemented for performance reasons
         """
-        # In a production system, we would maintain a cache of SKUs
-        # For now, we'll just return None to skip duplicate checking
-        # This can be improved by implementing proper SKU caching
-        return None
+        raise NotImplementedError(
+            "SKU-based duplicate checking is disabled for performance. "
+            "For production use, implement local SKU caching or GraphQL queries."
+        )
     
     def test_connection(self) -> bool:
         """Test Shopify API connection"""

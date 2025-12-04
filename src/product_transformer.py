@@ -209,9 +209,8 @@ class ProductTransformer:
         # Add Walmart tag
         tags.append('Walmart')
         
-        # Remove duplicates while preserving order
-        # Using dict.fromkeys() instead of set() to maintain insertion order
-        tags = list(dict.fromkeys(tags))  # Remove duplicates while preserving order
+        # Using dict.fromkeys() instead of set() to maintain insertion order (Python 3.7+)
+        tags = list(dict.fromkeys(tags))
         return ', '.join(tags[:20])  # Limit to 20 tags
     
     def is_valid_product(self, walmart_product: Dict) -> bool:

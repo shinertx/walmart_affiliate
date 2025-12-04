@@ -9,6 +9,7 @@ This script imports products from Walmart to Shopify, focusing on:
 import sys
 import json
 import time
+import math
 import logging
 from pathlib import Path
 from typing import List, Dict, Optional
@@ -108,8 +109,6 @@ class WalmartShopifyImporter:
         Returns:
             List of Walmart product dictionaries
         """
-        import math
-        
         all_products = []
         batches_needed = math.ceil(self.target_count / batch_size)
         
@@ -208,14 +207,8 @@ class WalmartShopifyImporter:
                 # Transform product data
                 shopify_product = self.transformer.transform_walmart_to_shopify(walmart_product)
                 
-                # Note: Duplicate checking is currently disabled for performance
-                # In production, implement a local SKU cache or use GraphQL queries
-                # Check if product already exists (by SKU)
-                # existing = self.shopify_client.search_product_by_sku(str(item_id))
-                # if existing:
-                #     self.logger.info(f"  Product already exists (SKU: {item_id}), skipping...")
-                #     self.stats['skipped_duplicates'] += 1
-                #     continue
+                # Note: Duplicate checking is disabled for performance reasons during bulk import.
+                # For production use, implement a local SKU cache or GraphQL-based batch queries.
                 
                 # Create product in Shopify
                 result = self.shopify_client.create_product(shopify_product)
