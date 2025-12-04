@@ -58,6 +58,7 @@ venv.bak/
 # Results and logs
 results/
 logs/
+import_stats/
 *.log
 
 # IDE
