@@ -1,52 +1,104 @@
-# Walmart Affiliate API Testing & Access Guide
+# Walmart-to-Shopify Automated Dropshipping & Affiliate System
 
-This project helps you access Walmart's Affiliate API using RSA-signed requests and tests throughput (batch sizes, response times, and limits).
+## 🎯 Project Goal
+This system is a high-performance, automated engine designed to populate a Shopify store with tens of thousands of Walmart products. It operates as a hybrid **Dropshipping/Affiliate** model:
+1.  **Product Discovery:** Scrapes high-quality, best-selling products from Walmart.com using the official API.
+2.  **Import Engine:** Automatically creates products in Shopify with clean descriptions, images, and pricing.
+3.  **Inventory Sync:** Connects directly to **AutoDS** for fulfillment and inventory management.
+4.  **Affiliate Integration:** Generates and stores Walmart Affiliate links in product metafields for alternative monetization.
 
-## 🚀 Quick Start
+## 🚀 System Architecture: "The Waves"
+To maximize throughput and avoid bottlenecks, the system runs multiple parallel "Waves" of workers, each targeting specific categories.
 
-1) Run the setup script
+### 🌊 Wave 2: Best Sellers (Core)
+*   **Script:** `import_wave2_bestsellers.py`
+*   **Focus:** High-volume "Power Keywords" (Electronics, Home, Toys, Automotive).
+*   **Goal:** Build the store's foundation with popular items.
 
+### 🌊 Wave 3: Expansion (Niche)
+*   **Script:** `import_wave3_expansion.py`
+*   **Focus:** Deep-dive categories (Vacuums, Sports, Household).
+*   **Goal:** Capture specific niches with high search intent.
+
+### 🌊 Wave 4: New Horizons (Consumables)
+*   **Script:** `import_wave4_expansion.py`
+*   **Focus:** Recurring purchase items (Beauty, Pets, Baby, Tools).
+*   **Goal:** Drive repeat traffic and volume.
+
+---
+
+## 🛠️ Operational Logic
+
+### 1. Pricing Strategy
+We apply a dynamic markup formula to ensure profitability after fees:
+$$ \text{Price} = \frac{(\text{Cost} \times 1.188) + 0.30}{0.971} $$
+*   **1.188:** Covers estimated tax (8%) and margin (10%).
+*   **+0.30:** Fixed transaction fee.
+*   **0.971:** Covers payment processing fees (2.9%).
+
+### 2. Inventory & Fulfillment (AutoDS)
+*   **Detection:** The system automatically detects the `AutoDS` fulfillment service handle.
+*   **Assignment:** Products are assigned to AutoDS immediately upon creation.
+*   **Stock:** Inventory is initialized to **50** to ensure availability.
+*   **Conflict Resolution:** The system automatically disconnects the "Default" location to prevent "Multiple Location" errors.
+
+### 3. Rate Limiting & Stability
+*   **Shopify API:** Workers sleep for **10 seconds** between imports to respect the leaky bucket limit.
+*   **Error Handling:** Automatically pauses for **30 seconds** if a `429 Too Many Requests` error is encountered.
+
+---
+
+## ☁️ Cloud Deployment Guide
+
+### 1. Setup
 ```bash
-./setup.sh
+# Clone repo
+git clone <repo_url>
+cd walmart_affiliate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure .env
+# Add SHOPIFY_STORE_URL, SHOPIFY_ACCESS_TOKEN, WALMART_PRIVATE_KEY_PATH, etc.
 ```
 
-2) Create and add your Walmart Affiliate API credentials to `.env`
-
-Required
-- WALMART_CONSUMER_ID: Your Consumer ID from the Walmart Developer Portal
-- WALMART_PRIVATE_KEY_VERSION: Key version shown next to your uploaded public key (usually "1")
-- WALMART_PRIVATE_KEY_PATH: Absolute path to the RSA private key that pairs with the uploaded public key
-
-Optional
-- WALMART_PRIVATE_KEY: Base64-encoded DER of your private key (use instead of WALMART_PRIVATE_KEY_PATH)
-- PUBLISHER_ID, CAMPAIGN_ID, AD_ID: Affiliate tracking parameters if you have them
-
-You can start from `.env.example` and fill in the values.
-
-3) Test your connection
+### 2. Launching the Engine
+To start all 15+ parallel workers in the background:
 
 ```bash
-python quick_test.py
+# Launch all waves
+nohup python3 launch_parallel.py > logs/wave2.out 2>&1 &
+nohup python3 launch_wave3.py > logs/wave3.out 2>&1 &
+nohup python3 launch_wave4.py > logs/wave4.out 2>&1 &
 ```
 
-4) Run batch testing
+### 3. Monitoring
+*   **Check Status:** `ps aux | grep "import_wave"`
+*   **Count Products:** `python3 count_products.py`
+*   **View Logs:** `tail -f logs/wave2.out`
 
+### 4. Stopping
 ```bash
-python main.py
+pkill -f "import_wave"
+pkill -f "launch_"
 ```
 
-## 📋 Requirements
+---
 
-- Python 3.8+
-- Walmart Developer account with access to the US Affiliate Product API
-- RSA key pair (2048-bit); public key uploaded in Developer Portal; private key available locally
-- Internet connection
+## 📂 File Structure
+*   `src/walmart_api.py`: Core wrapper for Walmart API (Search, Affiliate Link Gen).
+*   `import_wave*.py`: The worker scripts for each wave.
+*   `launch_*.py`: The launcher scripts that manage parallel processes.
+*   `count_products.py`: Utility to check total store count.
+*   `inspect_location.py`: Utility to debug Shopify locations/fulfillment services.
 
-## 🎯 What This Tool Tests
+---
 
-### API Endpoints
-- Catalog (paginated items): `https://developer.api.walmart.com/api-proxy/service/affil/product/v2/paginated/items`
-- Items (by IDs/UPC/GTIN): `https://developer.api.walmart.com/api-proxy/service/affil/product/v2/items`
+## ⚠️ Important Notes
+*   **Affiliate Links:** Stored in `product.metafields.walmart.affiliate_url`.
+*   **Descriptions:** Cleaned to remove direct "Buy at Walmart" links from the visible body text.
+*   **SSL/Certifi:** Scripts include a patch for Python SSL context to work reliably with Shopify's API on macOS/Linux.
 
 Auth: Requests are signed with RSA-SHA256 using headers:
 - WM_CONSUMER.ID
