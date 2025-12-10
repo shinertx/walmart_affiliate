@@ -429,6 +429,43 @@ class WalmartAPIClient:
             'error': f"Failed after {self.max_retries} attempts"
         }
     
+    def search(self, query: str, **kwargs) -> Dict[str, Any]:
+        """
+        Search for products using the Search API
+        """
+        search_url = "https://developer.api.walmart.com/api-proxy/service/affil/product/v2/search"
+        headers = self._get_headers()
+        
+        params = {
+            'query': query,
+            'publisherId': self.publisher_id,
+            'campaignId': self.campaign_id,
+        }
+        # Add optional params
+        for k, v in kwargs.items():
+            if v is not None:
+                params[k] = v
+                
+        try:
+            self.logger.info(f"Searching for: {query}")
+            response = requests.get(search_url, headers=headers, params=params, timeout=self.timeout)
+            
+            if response.status_code == 200:
+                return {
+                    'success': True,
+                    'data': response.json()
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': f"Status {response.status_code}: {response.text}"
+                }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': str(e)
+            }
+
     def test_connection(self) -> bool:
         """Test basic API connectivity"""
         try:
@@ -437,3 +474,44 @@ class WalmartAPIClient:
         except Exception as e:
             self.logger.error(f"Connection test failed: {str(e)}")
             return False
+
+    def generate_affiliate_link(self, item: Dict[str, Any]) -> Optional[str]:
+        """
+        Build a Walmart affiliate URL for a given item.
+
+        Contract:
+        - input: item dict from Walmart affiliate API (expects either 'productUrl' or 'itemId')
+        - output: fully-qualified affiliate URL with publisher/campaign/ad identifiers when available
+        - error: returns None if required fields are missing
+
+        Notes:
+        - Prefer productUrl provided by the API. Fallback to constructing from itemId.
+        - Query params used by Walmart affiliate: publisherId, campaignId, adId when configured.
+        """
+        try:
+            product_url = item.get('productUrl')
+            item_id = item.get('itemId')
+
+            if not product_url and not item_id:
+                return None
+
+            # Fallback construction from itemId when productUrl isn't present
+            if not product_url and item_id:
+                product_url = f"https://www.walmart.com/ip/{item_id}"
+
+            # Append affiliate identifiers if configured
+            params = []
+            if self.publisher_id:
+                params.append(f"publisherId={self.publisher_id}")
+            if self.campaign_id:
+                params.append(f"campaignId={self.campaign_id}")
+            if self.ad_id:
+                params.append(f"adId={self.ad_id}")
+
+            if params:
+                separator = '&' if ('?' in product_url) else '?'
+                return f"{product_url}{separator}{'&'.join(params)}"
+            return product_url
+        except Exception as e:
+            self.logger.error(f"Failed to generate affiliate link: {e}")
+            return None

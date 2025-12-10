@@ -31,9 +31,9 @@ pip install -r requirements.txt
 if [ ! -f ".env" ]; then
     echo "📝 Creating .env file from template..."
     cp .env.example .env
-    echo "⚠️  Please edit .env file and add your API credentials!"
-    echo "   Required: WALMART_API_KEY"
-    echo "   Optional: PUBLISHER_ID, CAMPAIGN_ID, AD_ID"
+        echo "⚠️  Please edit .env and add your Walmart Developer credentials!"
+        echo "   Required: WALMART_CONSUMER_ID, WALMART_PRIVATE_KEY_VERSION, WALMART_PRIVATE_KEY_PATH (or WALMART_PRIVATE_KEY)"
+        echo "   Optional: PUBLISHER_ID, CAMPAIGN_ID, AD_ID"
 else
     echo "✅ .env file already exists"
 fi
